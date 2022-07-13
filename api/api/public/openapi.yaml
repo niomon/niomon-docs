@@ -1,0 +1,1248 @@
+openapi: 3.0.3
+info:
+  title: Niomon API reference
+  description: >-
+    Niomon API follows the REST principles. Our API uses JSON encoding for
+    requests
+
+    and responses, and uses standard HTTP verbs (methods), response codes, and
+    authentication.
+
+
+    # Design Principles
+
+
+    ## Pagination
+
+
+    Requests that return a list of objects may support pagination. Pagination is
+    offset-based using
+
+    the `page` and `pageSize` query parameters.
+
+
+    To fetch the first page of entries in a collection the API needs to be
+    called either without
+
+    the `page` parameter, or with the `page` set to 0.  `pageSize` field is
+    optional and the
+
+    default is 50.
+
+
+    ## Error
+
+
+    Niomon uses HTTP response status codes to indicate the success or failure of
+    your API requests.
+
+    For failures, Niomon returns an error using the appropriate status code.
+    There are three
+
+    categories for status codes:
+
+
+    - `2xx` success status codes confirm that your request worked as expected.
+
+    - `4xx` error status codes indicate an error because of the information
+    provided (e.g., a required parameter was omitted).
+
+    - `5xx` error status codes are rare and indicate an error with Niomon’s
+    servers.
+  version: '1.0'
+  license:
+    name: Apache License 2.0
+    url: https://spdx.org/licenses/Apache-2.0.html
+servers:
+  - url: https://{serverName}/{tenant}
+    variables:
+      serverName:
+        default: api.niomonid.com
+        description: Hostname of the API server.
+      tenant:
+        default: _
+        description: ID for the tenant.
+tags:
+  - name: Users
+    description: Manages users in a tenant.
+  - name: Clients
+    description: Manages clients (aka. applications) in a tenant.
+  - name: Sessions
+    description: Manages user sessions in a tenant.
+  - name: Credentials
+    description: Manages credentials in a tenant.
+  - name: One-time Passcodes
+    description: Generates and authenticates one-time passcodes.
+  - name: Settings
+    description: Manages settings of a tenant.
+x-tagGroups:
+  - name: Management
+    tags:
+      - Users
+      - Clients
+      - Sessions
+      - Credentials
+      - One-time Passcodes
+      - Settings
+paths:
+  /v1/users:
+    post:
+      summary: Create user
+      description: >-
+        Add a user to Niomon. Email and phone number (if defined) must be
+        unique. It returns the created user.
+      tags:
+        - Users
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserData'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '409':
+          description: Email or phone number is already used by an existing user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          $ref: '#/components/responses/GenericError'
+    get:
+      summary: List users
+      description: Lists your users in Niomon.
+      tags:
+        - Users
+      operationId: listUsers
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListUsersResponse'
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/users/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: ID of the User.
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get user
+      description: Gets user attributes by user ID.
+      operationId: getUser
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          $ref: '#/components/responses/GenericError'
+    patch:
+      summary: Update user
+      description: >-
+        Updates a user's attributes. For example, you can change the user's
+        email or name. Omitted fields are not changed. Set fields to empty
+        string to unset it.
+      operationId: updateUser
+      tags:
+        - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserData'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          $ref: '#/components/responses/GenericError'
+    delete:
+      summary: Delete user
+      description: >-
+        Remove a user permanently. This action cannot be undone. Please use the
+        block user function to temporarily disable users.
+      operationId: deleteUser
+      tags:
+        - Users
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/users/{user_id}/enrollments:
+    parameters:
+      - name: user_id
+        in: path
+        description: ID of the User to enroll a credential.
+        required: true
+        schema:
+          type: string
+    post:
+      summary: Create credential enrollment token
+      description: >-
+        Create a credential enrollment token for the user to enroll a
+        credential.
+      tags:
+        - Credentials
+      operationId: createEnrollment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  description: Credential type, must be `public-key`
+                  default: public-key
+                  x-oapi-codegen-extra-tags:
+                    validate: omitempty,eq=|oneof=public-key
+                send:
+                  type: boolean
+                  default: true
+                  description: >-
+                    Deliver enrollment link via email or SMS. If it is set to
+                    false, application is
+
+                    responsible to deliver the enrollment token to initiate the
+                    enrollment flow.
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentResponse'
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/users/{user_id}/credentials:
+    parameters:
+      - name: user_id
+        in: path
+        description: ID for the User.
+        required: true
+        schema:
+          type: string
+    get:
+      summary: List credentials
+      description: Lists all credentials of a user.
+      tags:
+        - Credentials
+      operationId: listUserCredentials
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListCredentialsResponse'
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/users/{user_id}/sessions:
+    get:
+      summary: List sessions
+      description: Lists all active sessions of a user.
+      tags:
+        - Sessions
+      operationId: listUserSessions
+      parameters:
+        - name: user_id
+          in: path
+          description: The user ID to get active sessions for.
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListSessionsResponse'
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/sessions/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: ID of the Session.
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get session
+      description: Gets active session by session ID.
+      operationId: getSession
+      tags:
+        - Sessions
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        default:
+          $ref: '#/components/responses/GenericError'
+    delete:
+      summary: Delete session
+      description: Invalidates an active session.
+      operationId: deleteSession
+      tags:
+        - Sessions
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/clients:
+    post:
+      summary: Create client
+      description: Add a new client.
+      tags:
+        - Clients
+      operationId: createClient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClientRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        default:
+          $ref: '#/components/responses/GenericError'
+    get:
+      summary: List clients
+      description: Lists all your clients.
+      tags:
+        - Clients
+      operationId: listClients
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListClientsResponse'
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/clients/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: ID of the Client.
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get client
+      description: Gets client attributes.
+      operationId: getClient
+      tags:
+        - Clients
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        default:
+          $ref: '#/components/responses/GenericError'
+    patch:
+      summary: Update client
+      description: >-
+        Updates a client's attributes. For example, you can change the client's
+        name or description. Omitted fields are not changed. Set fields to empty
+        string to unset it.
+      operationId: updateClient
+      tags:
+        - Clients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientData'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        default:
+          $ref: '#/components/responses/GenericError'
+    delete:
+      summary: Delete client
+      description: Remove a client permanently. This action cannot be undone.
+      operationId: deleteClient
+      tags:
+        - Clients
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/credentials/{id}:
+    parameters:
+      - name: id
+        in: path
+        description: ID of the Credential.
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get credential
+      description: Gets credential attributes by ID.
+      operationId: getCredential
+      tags:
+        - Credentials
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credential'
+        default:
+          $ref: '#/components/responses/GenericError'
+    delete:
+      summary: Delete credential
+      description: Revoke a previously enrolled Credential.
+      operationId: deleteCredential
+      tags:
+        - Credentials
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/otps/email/send:
+    post:
+      summary: Send Email passcode
+      description: Send an Email one-time passcode.
+      tags:
+        - One-time Passcodes
+      operationId: sendEmailPasscode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: >-
+                    The email address of the user to send the one-time passcode
+                    to.
+                  x-oapi-codegen-extra-tags:
+                    validate: required,email
+              required:
+                - email
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendPasscodeResponse'
+      security:
+        - apiKey: []
+  /v1/otps/authenticate:
+    post:
+      summary: Authenticate passcode
+      description: Authenticate an email or SMS passcode.
+      tags:
+        - One-time Passcodes
+      operationId: authenticatePasscode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stateToken:
+                  type: string
+                  x-oapi-codegen-extra-tags:
+                    validate: required
+                code:
+                  type: string
+                  description: The code to authenticate.
+                  x-oapi-codegen-extra-tags:
+                    validate: required,number
+              required:
+                - stateToken
+                - code
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticatePasscodeResponse'
+      security:
+        - apiKey: []
+  /v1/settings:
+    get:
+      summary: Get settings
+      description: Get tenant's settings. This include all settings that a tenant can edit.
+      tags:
+        - Settings
+      operationId: getSettings
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+        default:
+          $ref: '#/components/responses/GenericError'
+    patch:
+      summary: Update settings
+      description: Updates tenant's settings.
+      tags:
+        - Settings
+      operationId: updateSettings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Settings'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+        default:
+          $ref: '#/components/responses/GenericError'
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: /oidc/authorize
+          scopes:
+            niomon.admin_console: Access admin console
+      description: >-
+        Applications that allow users to directly interact with Niomon Admin API
+        resources, such as
+
+        Admin Console, should use OAuth authentication.
+    apiKey:
+      type: http
+      scheme: Basic
+      description: >-
+        Server clients may use the HTTP Basic authentication scheme to
+        authenticate with Niomon
+
+        Admin API. The API Key ID is used as the username, and the API key is
+        used as the password.
+  parameters:
+    page:
+      name: page
+      in: query
+      description: The current page number. Zero-indexed.
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+    pageSize:
+      name: pageSize
+      in: query
+      description: Maximum number of results to be returned. Default 50, maximum 1000.
+      schema:
+        type: integer
+        default: 50
+        minimum: 1
+        maximum: 1000
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: An error message.
+        requestId:
+          type: string
+          description: An unique ID for the request.
+        fields:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              description:
+                type: string
+            required:
+              - field
+              - description
+      required:
+        - message
+        - requestId
+    PageMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+          description: The current page number.
+        pageSize:
+          type: integer
+          description: Maximum number of results to be returned. Default 50, maximum 10000.
+        totalSize:
+          type: integer
+          description: Count of results found by the query if count_total option is set.
+      required:
+        - page
+        - pageSize
+    Address:
+      type: object
+      properties:
+        formatted:
+          type: string
+        streetAddress:
+          type: string
+        locality:
+          type: string
+        region:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+    UserData:
+      type: object
+      properties:
+        name:
+          type: string
+          description: >-
+            End-User's full name in displayable form including all name parts,
+            possibly including
+
+            titles and suffixes, ordered according to the End-User's locale and
+            preferences.
+        givenName:
+          type: string
+          description: >-
+            Given name(s) or first name(s) of the End-User. Note that in some
+            cultures, people can
+
+            have multiple given names; all can be present, with the names being
+            separated by space
+
+            characters.
+        familyName:
+          type: string
+          description: >-
+            Surname(s) or last name(s) of the End-User. Note that in some
+            cultures, people can have
+
+            multiple family names or no family name; all can be present, with
+            the names being
+
+            separated by space characters.
+        middleName:
+          type: string
+          description: >-
+            Middle name(s) of the End-User. Note that in some cultures, people
+            can have multiple
+
+            middle names; all can be present, with the names being separated by
+            space characters.
+
+            Also note that in some cultures, middle names are not used.
+        nickname:
+          type: string
+          description: >-
+            Casual name of the End-User that may or may not be the same as the
+            given_name. For
+
+            instance, a nickname value of Mike might be returned alongside a
+            given_name value of
+
+            Michael.
+        preferredUsername:
+          type: string
+          description: >-
+            Shorthand name by which the End-User wishes to be referred to at the
+            RP, such as
+
+            janedoe or j.doe. This value MAY be any valid JSON string including
+            special characters
+
+            such as @, /, or whitespace.
+        profile:
+          type: string
+          description: >-
+            URL of the End-User's profile page. The contents of this Web page
+            SHOULD be about the
+
+            End-User.
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,eq=|url
+        picture:
+          type: string
+          description: >-
+            URL of the End-User's profile picture. This URL MUST refer to an
+            image file (for
+
+            example, a PNG, JPEG, or GIF image file), rather than to a Web page
+            containing an
+
+            image. Note that this URL SHOULD specifically reference a profile
+            photo of the End-User
+
+            suitable for displaying when describing the End-User, rather than an
+            arbitrary photo
+
+            taken by the End-User.
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,eq=|uri
+        website:
+          type: string
+          description: >-
+            URL of the End-User's Web page or blog. This Web page SHOULD contain
+            information
+
+            published by the End-User or an organization that the End-User is
+            affiliated with.
+        email:
+          type: string
+          description: >-
+            End-User's preferred e-mail address. Its value MUST conform to the
+            RFC 5322 [RFC5322]
+
+            addr-spec syntax.
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,eq=|email
+        emailVerified:
+          type: boolean
+          description: >-
+            True if the End-User's e-mail address has been verified; otherwise
+            false. When this
+
+            Claim Value is true, this means that the OP took affirmative steps
+            to ensure that this
+
+            e-mail address was controlled by the End-User at the time the
+            verification was
+
+            performed. The means by which an e-mail address is verified is
+            context-specific, and
+
+            dependent upon the trust framework or contractual agreements within
+            which the parties
+
+            are operating.
+        gender:
+          type: string
+          description: >-
+            End-User's gender. Values defined by this specification are female
+            and male. Other
+
+            values MAY be used when neither of the defined values are
+            applicable.
+        birthdate:
+          type: string
+          description: >-
+            End-User's birthday, represented as an ISO 8601:2004 [ISO8601‑2004]
+            YYYY-MM-DD format.
+
+            The year MAY be 0000, indicating that it is omitted. To represent
+            only the year, YYYY
+
+            format is allowed. Note that depending on the underlying platform's
+            date related
+
+            function, providing just year can result in varying month and day,
+            so the implementers
+
+            need to take this factor into account to correctly process the
+            dates.
+        zoneinfo:
+          type: string
+          description: >-
+            String from zoneinfo [zoneinfo] time zone database representing the
+            End-User's time
+
+            zone. For example, Europe/Paris or America/Los_Angeles.
+        locale:
+          type: string
+          description: >-
+            End-User's locale, represented as a BCP47 [RFC5646] language tag.
+            This is typically an
+
+            ISO 639-1 Alpha-2 [ISO639‑1] language code in lowercase and an ISO
+            3166-1 Alpha-2
+
+            [ISO3166‑1] country code in uppercase, separated by a dash. For
+            example, en-US or
+
+            fr-CA. As a compatibility note, some implementations have used an
+            underscore as the
+
+            separator rather than a dash, for example, en_US; Relying Parties
+            MAY choose to accept
+
+            this locale syntax as well.
+        phoneNumber:
+          type: string
+          description: >-
+            End-User's preferred telephone number. E.164 [E.164] is RECOMMENDED
+            as the format of
+
+            this Claim, for example, +1 (425) 555-1212 or +56 (2) 687 2400. If
+            the phone number
+
+            contains an extension, it is RECOMMENDED that the extension be
+            represented using the
+
+            RFC 3966 [RFC3966] extension syntax, for example, +1 (604)
+            555-1234;ext=5678.
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,eq=|e164
+        phoneNumberVerified:
+          type: boolean
+          description: >-
+            User at the time the verification was performed. The means by which
+            a phone number is
+
+            verified is context-specific, and dependent upon the trust framework
+            or contractual
+
+            agreements within which the parties are operating. When true, the
+            phone_number Claim
+
+            MUST be in E.164 format and any extensions MUST be represented in
+            RFC 3966 format.
+        address:
+          description: End-User's preferred postal address.
+          $ref: '#/components/schemas/Address'
+        userMetadata:
+          type: object
+        appMetadata:
+          type: object
+    User:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              description: ID for the End-User.
+          required:
+            - id
+        - $ref: '#/components/schemas/UserData'
+        - type: object
+          properties:
+            lastSeenAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+              description: Time the End-User's information was last updated.
+            createdAt:
+              type: string
+              format: date-time
+              description: Time the End-User's was first registered.
+          required:
+            - updatedAt
+            - createdAt
+    ListUsersResponse:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            users:
+              type: array
+              items:
+                $ref: '#/components/schemas/User'
+          required:
+            - users
+    EnrollmentResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: An enrollment token
+        uri:
+          type: string
+          description: >-
+            An URI that the Authenticator SDK consumes to initiate the
+            enrollment flow.
+        deepLink:
+          type: string
+          description: >-
+            A link that redirects users to the app and initiate the enrollment
+            flow. The link will
+
+            direct users to download the app if the app isn't installed on the
+            device.
+      required:
+        - token
+        - uri
+    Device:
+      type: object
+      properties:
+        hash:
+          type: string
+        swVersion:
+          type: string
+        mobile:
+          type: boolean
+        platform:
+          type: string
+        architecture:
+          type: string
+        bitness:
+          type: string
+        model:
+          type: string
+        platformVersion:
+          type: string
+        uaBrand:
+          type: string
+        uaVersion:
+          type: string
+        lastSeenIp:
+          type: string
+        lastSeenAt:
+          type: string
+          format: date-time
+    Credential:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        publicKey:
+          type: string
+        lastUsedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        device:
+          $ref: '#/components/schemas/Device'
+      required:
+        - id
+        - publicKey
+    ListCredentialsResponse:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            credentials:
+              type: array
+              items:
+                $ref: '#/components/schemas/Credential'
+          required:
+            - credentials
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID for the Session.
+        userId:
+          type: string
+          description: User ID for the Session.
+        clientId:
+          type: string
+          description: Client ID for the Session.
+        lastSeenAt:
+          type: string
+          format: date-time
+          description: Time the Session was last refreshed.
+        lastSeenIp:
+          type: string
+          description: Last seen IP address of the Session.
+        lastSeenLocation:
+          type: string
+          description: Last seen location of the Session.
+        userAgent:
+          type: string
+          description: Last seen user agent of the Session.
+        expiresAt:
+          type: string
+          format: date-time
+          description: Expiry time of the Session.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time the Session's information was last updated.
+        createdAt:
+          type: string
+          format: date-time
+          description: Time the Session's was first created.
+      required:
+        - id
+        - userId
+        - updatedAt
+        - createdAt
+    ListSessionsResponse:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            sessions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Session'
+          required:
+            - sessions
+    ClientData:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the client.
+        description:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: description
+          description: Free text description of the purpose of the Client.
+        appType:
+          type: string
+          description: Type of this client application.
+          enum:
+            - single-page
+            - web
+            - native
+            - machine
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,eq=|oneof=single-page web native machine
+        themeColor:
+          type: string
+          description: Theme color for this client application.
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,eq=|hexcolor
+        logoUrl:
+          type: string
+          description: 'The URL of the client logo (recommended size: 150x150)'
+          x-oapi-codegen-extra-tags:
+            json: logoUrl
+            validate: omitempty,eq=|uri
+        callbacks:
+          type: array
+          items:
+            type: string
+          description: >-
+            A set of URLs that are valid to call back from Niomon when
+            authenticating users.
+        allowedOrigins:
+          type: array
+          items:
+            type: string
+          description: A set of URLs that represents valid origins for CORS.
+        webOrigins:
+          type: array
+          items:
+            type: string
+          description: >-
+            A set of URLs that represents valid web origins for use with web
+            message response mode
+        allowedLogoutUrls:
+          type: array
+          items:
+            type: string
+          description: >-
+            A set of URLs that are valid to redirect to after logout from
+            Niomon.
+        initiateLoginUrl:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: initiateLoginUrl
+            validate: omitempty,eq=|url
+          description: >-
+            In some scenarios, Niomon will need to redirect to your
+            application’s login page.
+
+            This URI needs to point to a route in your application that should
+            redirect to your tenant’s
+
+            /authorize endpoint.
+        tokenExpiryTime:
+          type: number
+          description: >-
+            The amount of time (in seconds) that the OIDC token will be valid
+            after being issued.
+        requireConsent:
+          type: boolean
+          description: >-
+            Flag to indicate consent is required from user for the external
+            client
+    Client:
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              description: ID for the Client.
+          required:
+            - id
+        - $ref: '#/components/schemas/ClientData'
+        - type: object
+          properties:
+            secret:
+              type: string
+              description: Client secret of the client application.
+            type:
+              type: string
+              description: The type of the application, can be only 'login' or 'payment'.
+              enum:
+                - login
+                - payment
+            updatedAt:
+              type: string
+              format: date-time
+            createdAt:
+              type: string
+              format: date-time
+          required:
+            - clientSecret
+            - tenantId
+            - updatedAt
+            - createdAt
+    ListClientsResponse:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            clients:
+              type: array
+              items:
+                $ref: '#/components/schemas/Client'
+          required:
+            - clients
+    CreateClientRequest:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ClientData'
+        - type: object
+          properties:
+            name:
+              type: string
+              description: The name of the client.
+              x-oapi-codegen-extra-tags:
+                validate: required
+            type:
+              type: string
+              description: The type of the application, can be only 'login' or 'payment'.
+              enum:
+                - login
+                - payment
+              x-oapi-codegen-extra-tags:
+                validate: required,oneof=login payment
+            appType:
+              type: string
+              description: Type of this client application.
+              enum:
+                - single-page
+                - web
+                - native
+                - machine
+              x-oapi-codegen-extra-tags:
+                validate: required,oneof=single-page web native machine
+          required:
+            - name
+            - type
+            - appType
+    SendPasscodeResponse:
+      type: object
+      properties:
+        stateToken:
+          type: string
+        userId:
+          type: string
+      required:
+        - stateToken
+        - userId
+    AuthenticatePasscodeResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+      required:
+        - userId
+    Settings:
+      type: object
+      properties:
+        friendlyName:
+          type: string
+          description: Friendly name for this tenant.
+        logoUrl:
+          type: string
+          description: URL of logo to be shown for this tenant.
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,eq=|uri
+        defaultAudience:
+          type: string
+          description: Default Audience for API authorization.
+        loginUrl:
+          type: string
+          description: Login URL for this tenant.
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,eq=|url
+        supportUrl:
+          type: string
+          description: Support URL for this tenant.
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,eq=|url
+  responses:
+    GenericError:
+      description: An error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+security:
+  - apiKey: []
+  - oauth2:
+      - niomon.admin

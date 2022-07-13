@@ -1,0 +1,654 @@
+openapi: 3.0.3
+info:
+  title: Niomon Internal API (Authn)
+  description: For Internal Use Only
+  version: '1.0'
+  license:
+    name: Apache License 2.0
+    url: https://spdx.org/licenses/Apache-2.0.html
+servers:
+  - url: https://{serverName}/{tenant}
+    variables:
+      serverName:
+        default: api.niomonid.com
+        description: Hostname of the API server.
+      tenant:
+        default: _
+        description: ID for the tenant.
+paths:
+  /authn/v1/start:
+    post:
+      summary: Start authentication
+      description: Initiates an authentication transaction.
+      tags:
+        - Transaction
+      operationId: startAuthentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  description: Type of the authentication.
+                  enum:
+                    - login
+                    - payment
+                  x-oapi-codegen-extra-tags:
+                    validate: required,oneof=login payment
+                allowUser:
+                  type: string
+                  description: >-
+                    ID of the user to authenticate. Empty or undefined value
+                    allows any user to authenticate.
+                origin:
+                  type: string
+                  description: 'Web origin of the site that performs the authentication. '
+                  x-oapi-codegen-extra-tags:
+                    validate: required,url
+              required:
+                - type
+                - origin
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionState'
+      security: []
+  /authn/v1/getstate:
+    post:
+      summary: Retrieve authentication state
+      description: Retrieve a authentication state.
+      tags:
+        - Transaction
+      operationId: getAuthenticationState
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stateToken:
+                  type: string
+              x-oapi-codegen-extra-tags:
+                validate: required
+              required:
+                - stateToken
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionState'
+      security: []
+  /authn/v1/webauthn/authenticate:
+    post:
+      summary: Authenticate WebAuthn/Mobile Authenticator
+      description: >-
+        Completes the authentication of a WebAuthn/Mobile Authenticator
+        transaction.
+      tags:
+        - WebAuthn
+      operationId: authenticateWebAuthn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthenticateWebAuthnRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionState'
+      security: []
+  /authn/v1/otp/email/send:
+    post:
+      summary: Send a one-time passcode to a user using their email.
+      tags:
+        - OTP
+      operationId: sendEmailPasscode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stateToken:
+                  type: string
+                  description: >-
+                    Ephemeral token that identifies the current state of an
+                    authentication or recovery transaction.
+                  x-oapi-codegen-extra-tags:
+                    validate: required
+                email:
+                  type: string
+                  description: Email address
+                  x-oapi-codegen-extra-tags:
+                    validate: required,email
+                loginOrSignup:
+                  type: boolean
+                  default: false
+                  description: >-
+                    Create a user if the email is not associated with a user
+                    already. Returns an error if this is set to true and public
+                    sign-up is disabled in tenant settings.
+              required:
+                - stateToken
+                - email
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionState'
+      security: []
+  /authn/v1/otp/authenticate:
+    post:
+      summary: Authenticate one-time passcode
+      tags:
+        - OTP
+      operationId: authenticatePasscode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stateToken:
+                  type: string
+                  description: >-
+                    Ephemeral token that identifies the current state of an
+                    authentication or recovery
+
+                    transaction.
+                  x-oapi-codegen-extra-tags:
+                    validate: required
+                code:
+                  type: string
+                  description: The code to authenticate.
+                  x-oapi-codegen-extra-tags:
+                    validate: required,number
+              required:
+                - stateToken
+                - code
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionState'
+      security: []
+  /authn/v1/enrollment/start:
+    post:
+      summary: Start enrollment transaction
+      description: Start an enrollment transaction using enrollment token.
+      tags:
+        - Enrollment
+      operationId: enrollmentStart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enrollmentToken:
+                  type: string
+                  x-oapi-codegen-extra-tags:
+                    validate: required
+              required:
+                - enrollmentToken
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentState'
+      security: []
+  /authn/v1/enrollment/getstate:
+    post:
+      summary: Get enrollment state
+      description: Get enrollment state using state token.
+      tags:
+        - Enrollment
+      operationId: enrollmentGetState
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stateToken:
+                  type: string
+                  x-oapi-codegen-extra-tags:
+                    validate: required
+              required:
+                - stateToken
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentState'
+      security: []
+  /authn/v1/enrollment/enroll:
+    post:
+      summary: Enroll credentials
+      description: Enroll credentials using attestation from create credential.
+      tags:
+        - Enrollment
+      operationId: enrollmentEnroll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Enrollment'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentState'
+      security: []
+  /authn/v1/enrollment/get-enrollmenttoken-state:
+    post:
+      summary: Get enrollment state by enrollment token
+      description: Get enrollment state using enrollment token.
+      tags:
+        - Enrollment
+      operationId: enrollmentGetEnrollmentTokenState
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enrollmentToken:
+                  type: string
+                  x-oapi-codegen-extra-tags:
+                    validate: required
+              required:
+                - enrollmentToken
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentState'
+      security: []
+  /authn/v1/ditto/userinfo:
+    post:
+      summary: Get Ditto user
+      tags:
+        - Ditto
+      operationId: dittoGetUserInfo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stateToken:
+                  type: string
+                clientId:
+                  type: string
+              x-oapi-codegen-extra-tags:
+                validate: required
+              required:
+                - stateToken
+                - clientId
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DittoUserInfo'
+      security: []
+  /authn/v1/ditto/signup:
+    post:
+      summary: Ditto sign up
+      tags:
+        - Ditto
+      operationId: dittoSignup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stateToken:
+                  type: string
+                  x-oapi-codegen-extra-tags:
+                    validate: required
+                username:
+                  type: string
+                  x-oapi-codegen-extra-tags:
+                    validate: required
+                tosVersion:
+                  type: number
+                subscribeMarketing:
+                  type: boolean
+              required:
+                - stateToken
+                - username
+                - tosVersion
+                - subscribeMarketing
+      responses:
+        '201':
+          description: Sign up scuccss
+      security: []
+components:
+  schemas:
+    TransactionState:
+      type: object
+      properties:
+        stateToken:
+          type: string
+          description: >-
+            Ephemeral token that identifies the current state of an
+            authentication or recovery
+
+            transaction.
+        status:
+          type: string
+        type:
+          type: string
+        authenticator:
+          type: object
+          properties:
+            challenge:
+              type: string
+              format: byte
+    CredentialResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          x-oapi-codegen-extra-tags:
+            copier: ID
+            validate: required
+        type:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: required
+      required:
+        - id
+        - type
+    AuthenticatorAssertionResponse:
+      type: object
+      properties:
+        clientDataJSON:
+          type: string
+          format: byte
+          x-oapi-codegen-extra-tags:
+            validate: required
+        authenticatorData:
+          type: string
+          format: byte
+          x-oapi-codegen-extra-tags:
+            validate: required
+        signature:
+          type: string
+          format: byte
+          x-oapi-codegen-extra-tags:
+            validate: required
+        userHandle:
+          type: string
+          format: byte
+      required:
+        - clientDataJSON
+        - authenticatorData
+        - signature
+        - userHandle
+      x-oapi-codegen-extra-tags:
+        copier: AssertionResponse
+    AuthenticationExtensionsClientOutputs:
+      type: object
+    GetAssertionResponse:
+      allOf:
+        - $ref: '#/components/schemas/CredentialResponse'
+        - type: object
+          properties:
+            rawId:
+              type: string
+              format: byte
+              x-oapi-codegen-extra-tags:
+                copier: RawID
+                validate: required
+            response:
+              $ref: '#/components/schemas/AuthenticatorAssertionResponse'
+            clientExtensionResult:
+              $ref: '#/components/schemas/AuthenticationExtensionsClientOutputs'
+          required:
+            - rawId
+            - response
+    AuthenticateWebAuthnRequest:
+      type: object
+      properties:
+        stateToken:
+          type: string
+          description: >-
+            Ephemeral token that identifies the current state of an
+            authentication or recovery transaction.
+          x-oapi-codegen-extra-tags:
+            validate: required
+        getAssertionResponse:
+          $ref: '#/components/schemas/GetAssertionResponse'
+      required:
+        - stateToken
+        - getAssertionResponse
+    PublicKeyCredentialEntity:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+    PublicKeyCredentialRpEntity:
+      allOf:
+        - $ref: '#/components/schemas/PublicKeyCredentialEntity'
+        - type: object
+          properties:
+            id:
+              type: string
+    PublicKeyCredentialUserEntity:
+      allOf:
+        - $ref: '#/components/schemas/PublicKeyCredentialEntity'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: byte
+            displayName:
+              type: string
+          required:
+            - id
+            - displayName
+    COSEAlgorithmIdentifier:
+      type: integer
+    PublicKeyCredentialParameters:
+      type: object
+      properties:
+        type:
+          type: string
+        alg:
+          $ref: '#/components/schemas/COSEAlgorithmIdentifier'
+      required:
+        - type
+        - alg
+    PublicKeyCredentialDescriptor:
+      type: object
+      properties:
+        type:
+          type: string
+        id:
+          type: string
+          format: byte
+        transports:
+          type: array
+          items:
+            type: string
+      required:
+        - type
+        - id
+    AuthenticatorSelectionCriteria:
+      type: object
+      properties:
+        authenticatorAttachment:
+          type: string
+        residentKey:
+          type: string
+        requireResidentKey:
+          type: boolean
+          default: false
+        userVerification:
+          type: string
+          default: preferred
+    AuthenticationExtensionsClientInputs:
+      type: object
+      additionalProperties: true
+    PublicKeyCredentialCreationOptions:
+      type: object
+      description: PublicKeyCredentialCreationOptions in WebAuthn registration ceremony.
+      properties:
+        rp:
+          $ref: '#/components/schemas/PublicKeyCredentialRpEntity'
+        user:
+          $ref: '#/components/schemas/PublicKeyCredentialUserEntity'
+        challenge:
+          type: string
+          format: byte
+        pubKeyCredParams:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicKeyCredentialParameters'
+        timeout:
+          type: number
+        excludeCredentials:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicKeyCredentialDescriptor'
+          default: []
+        authenticatorSelection:
+          $ref: '#/components/schemas/AuthenticatorSelectionCriteria'
+        attestation:
+          type: string
+          default: none
+        extensions:
+          $ref: '#/components/schemas/AuthenticationExtensionsClientInputs'
+      required:
+        - rp
+        - user
+        - challenge
+        - pubKeyCredParams
+    CredentialCreationOptions:
+      type: object
+      properties:
+        publicKey:
+          $ref: '#/components/schemas/PublicKeyCredentialCreationOptions'
+    EnrollmentState:
+      type: object
+      properties:
+        stateToken:
+          type: string
+        status:
+          type: string
+          enum:
+            - STARTED
+            - UNVERIFIED
+            - SUCCESS
+            - FAILED
+            - BLOCKED
+        options:
+          $ref: '#/components/schemas/CredentialCreationOptions'
+        cardLayoutId:
+          type: string
+    AuthenticatorResponse:
+      type: object
+      properties:
+        clientDataJSON:
+          type: string
+          format: byte
+      required:
+        - clientDataJSON
+    AuthenticatorAttestationResponse:
+      description: AuthenticatorAttestationResponse in WebAuthn registration ceremony.
+      allOf:
+        - $ref: '#/components/schemas/AuthenticatorResponse'
+        - type: object
+          properties:
+            attestationObject:
+              type: string
+              format: byte
+            transports:
+              type: string
+              format: byte
+          required:
+            - attestationObject
+      x-oapi-codegen-extra-tags:
+        copier: AttestationResponse
+    CredentialCreationResponse:
+      allOf:
+        - $ref: '#/components/schemas/CredentialResponse'
+        - type: object
+          properties:
+            rawId:
+              type: string
+              format: byte
+              x-oapi-codegen-extra-tags:
+                copier: RawID
+                validate: required
+            response:
+              $ref: '#/components/schemas/AuthenticatorAttestationResponse'
+            clientExtensionResult:
+              $ref: '#/components/schemas/AuthenticationExtensionsClientOutputs'
+          required:
+            - rawId
+    Enrollment:
+      type: object
+      properties:
+        stateToken:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: required
+        credentialCreateResponse:
+          $ref: '#/components/schemas/CredentialCreationResponse'
+      required:
+        - stateToken
+        - credentialCreateResponse
+    DittoUserInfo:
+      type: object
+      properties:
+        userId:
+          type: string
+        signUpCompleted:
+          type: boolean
+        consentRequired:
+          type: boolean
+      required:
+        - userId
+        - signUpCompleted
+        - consentRequired
