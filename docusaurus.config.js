@@ -138,19 +138,6 @@ const config = {
     }),
 
   plugins: [
-    [
-      'docusaurus-plugin-typedoc',
-      {
-        readme: 'none',
-        entryPoints: ['../js/niomon-js'],
-        entryPointStrategy: 'packages',
-        sidebar: {
-          fullNames: true,
-          categoryLabel: 'niomon-js'
-        },
-        out: 'sdk/niomon-js',
-      },
-    ],
   ],
 };
 
