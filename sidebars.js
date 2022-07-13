@@ -70,7 +70,7 @@ const sidebars = {
       items: [
         {
           type: 'link',
-          href: 'pathname:///api/',
+          href: 'pathname:///api/docs/',
           label: 'Niomon API (REST)',
         },
         {
