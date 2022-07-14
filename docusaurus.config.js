@@ -8,13 +8,13 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 const config = {
   title: 'Niomon Developer Docs',
   tagline: 'Authentication layer for Web3',
-  url: 'https://docs.niomon.io/',
+  url: 'https://docs.niomon.io',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'niomon', // Usually your GitHub org/user name.
-  projectName: 'Niomon', // Usually your repo name.
+  projectName: 'niomon-docs', // Usually your repo name.
 
   presets: [
     [
@@ -24,14 +24,10 @@ const config = {
         docs: {
           remarkPlugins: [require('mdx-mermaid')],
           sidebarPath: require.resolve('./sidebars.js'),
-          // Please change this to your repo.
-          // editUrl: 'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+          editUrl: 'https://github.com/niomon/niomon-docs/blob/main/',
         },
         blog: {
           showReadingTime: true,
-          // Please change this to your repo.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
@@ -111,7 +107,7 @@ const config = {
             items: [
               {
                 label: 'Twitter',
-                href: 'https://twitter.com/niomon',
+                href: 'https://twitter.com/niomon_io',
               },
               {
                 label: 'GitHub',
