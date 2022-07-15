@@ -30,7 +30,7 @@ This table lists Niomon's current feature availability for each of its supported
 | zksync2-testnet  | zkSync V2 testnet                       | <Unsupported />    | <Q4 />        | <Q4 />          |
 | immutable        | Immutable X                             | <Unsupported />    | <Q4 />        | <Q4 />          |
 | solana           | Solana mainnet                          | <Q4 />             | <Q4 />        | <Q4 />          |
-| solana-testnet   | Solana testnet                          | <Supported /> [^2] | <Q4 />        | <Q4 />          |
+| solana-testnet   | Solana testnet                          | <Q4 /> [^2]        | <Q4 />        | <Q4 />          |
 | cosmos-sdk       | Cosmos SDK based chains                 | <Unsupported />    | <Provider />  | <Unsupported /> |
 
 [^1]: Use Ethereum identity for authentication.
