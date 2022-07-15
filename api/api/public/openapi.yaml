@@ -829,6 +829,8 @@ components:
             MAY choose to accept
 
             this locale syntax as well.
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,eq=|bcp47_language_tag
         phoneNumber:
           type: string
           description: >-
