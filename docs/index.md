@@ -27,59 +27,98 @@ us](/docs/support) at any time to provide your feedback.
 
 ## Product suite
 
-<div class="product-grid">
-  <div class="row">
-    <div class="col col--3">
-      <h3>Auth</h3>
-      <p class="text--center">
-        <img src={require('/img/web3_login.png').default} style={{maxHeight: '200px'}} />
-      </p>
-      <p>
-        Niomon Auth allows you to build frictionless and secure authentication flows supporting
-        Email/SMS passcodes, social logins, and Web3 wallets. Supports Sign in with Ethereum (<a
-        href="https://eips.ethereum.org/EIPS/eip-4361">EIP-4361</a>) and gating access by NFT
-        ownership.
-      </p>
-      <a class="">Learn more</a>
-    </div>
-    <div class="col col--3">
-      <h3>Wallet Kit</h3>
-      <p class="text--center">
-        <img src={require('/img/wallet_kit.png').default} style={{maxHeight: '200px'}} />
-      </p>
-      <p>
-        Wallet Kit is a crypto wallet infrastructure consisting of a non-custodial key management
-        system, adapters supporting most blockchains, and a customizable wallet UI SDKs.  With
-        Wallet Kit, you can build an app with an internal wallet or a complete wallet app with a
-        few lines of code.
-      </p>
-      <a class="">Learn more</a>
-    </div>
-    <div class="col col--3">
-      <h3>Ditto</h3>
-      <p class="text--center">
-        <img src={require('/img/ditto_app.png').default} style={{maxHeight: '200px'}} />
-      </p>
-      <p>
-        Ditto is a fun multi-chain crypto wallet built on top of Wallet Kit. It focuses on everyday
-        users and Web3 gaming, helping apps and games developers onboard users new to crypto. Also,
-        Ditto Wallet allows users to buy tokens and NFTs using Apple Pay or debit cards.
-      </p>
-      <a target="_blank" href="https://ditto.xyz">Learn more</a>
-    </div>
-    <div class="col col--3">
-      <h3>NFT Checkout</h3>
-      <p class="text--center">
-        <img src={require('/img/nft_checkout.png').default} style={{maxHeight: '200px'}} />
-      </p>
-      <p>
-        NFT checkout with Apple Pay or cards. Make NFTs accessible to mainstream audiences with a
-        fast & simple checkout solution.
-      </p>
-      <span class="badge badge--secondary">Coming soon in Q4'22</span>
+<section class="row">
+  <div class="col col--6 margin-bottom--lg">
+    <div class="card-demo">
+      <div class="card padding--lg">
+        <div class="card__header">
+          <h3>Auth</h3>
+        </div>
+        <div class="card__body">
+          <p class="text--center">
+            <img src={require('/img/web3_login.png').default} style={{maxHeight: '250px'}} />
+          </p>
+          <p>
+            Niomon Auth allows you to build frictionless and secure authentication flows supporting
+            Email/SMS passcodes, social logins, and Web3 wallets. Supports Sign in with Ethereum
+            (<a href="https://eips.ethereum.org/EIPS/eip-4361">EIP-4361</a>) and gating access by
+            NFT ownership.
+          </p>
+        </div>
+        <div class="card__footer">
+          <a class="/docs/auth">Learn more</a>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+  <div class="col col--6 margin-bottom--lg">
+    <div class="card-demo">
+      <div class="card padding--lg">
+        <div class="card__header">
+          <h3>Auth</h3>
+        </div>
+        <div class="card__body">
+          <p class="text--center">
+            <img src={require('/img/wallet_kit.png').default} style={{maxHeight: '250px'}} />
+          </p>
+          <p>
+            Wallet Kit is a crypto wallet infrastructure consisting of a non-custodial key
+            management system, adapters supporting most blockchains, and a customizable wallet UI
+            SDKs.  With Wallet Kit, you can build an app with an internal wallet or a complete
+            wallet app with a few lines of code.
+          </p>
+        </div>
+        <div class="card__footer">
+          <a class="/docs/auth">Learn more</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col col--6 margin-bottom--lg">
+    <div class="card-demo">
+      <div class="card padding--lg">
+        <div class="card__header">
+          <h3>Ditto</h3>
+        </div>
+        <div class="card__body">
+          <p class="text--center">
+            <img src={require('/img/ditto_app.png').default} style={{maxHeight: '250px'}} />
+          </p>
+          <p>
+            Ditto is a fun multi-chain crypto wallet built on top of Wallet Kit. It focuses on
+            everyday users and Web3 gaming, helping apps and games developers onboard users new to
+            crypto. Also, Ditto Wallet allows users to buy tokens and NFTs using Apple Pay or debit
+            cards.
+          </p>
+        </div>
+        <div class="card__footer">
+          <a class="/docs/walletkit">Learn more</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col col--6 margin-bottom--lg">
+    <div class="card-demo">
+      <div class="card padding--lg">
+        <div class="card__header">
+          <h3>NFT Checkout</h3>
+        </div>
+        <div class="card__body">
+          <p class="text--center">
+            <img src={require('/img/nft_checkout.png').default} style={{maxHeight: '250px'}} />
+          </p>
+          <p>
+            NFT checkout with Apple Pay or cards. Make NFTs accessible to mainstream audiences with
+            a fast & simple checkout solution.
+          </p>
+        </div>
+        <div class="card__footer">
+          <span class="badge badge--secondary">Coming soon in Q4'22</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 ## Where to find us
 
