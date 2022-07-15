@@ -82,6 +82,23 @@ const config = {
         style: 'dark',
         links: [
           {
+            title: 'Niomon',
+            items: [
+              {
+                label: 'Homepage',
+                href: 'https://niomon.io/',
+              },
+              {
+                label: 'Pricing',
+                href: 'https://niomon.io/pricing',
+              },
+              {
+                label: 'Ditto',
+                href: 'https://ditto.xyz',
+              },
+            ],
+          },
+          {
             title: 'Develoeprs',
             items: [
               {
@@ -112,15 +129,6 @@ const config = {
               {
                 label: 'GitHub',
                 href: 'https://github.com/niomon',
-              },
-            ],
-          },
-          {
-            title: 'More',
-            items: [
-              {
-                label: 'Niomon Homepage',
-                href: 'https://niomon.io/',
               },
             ],
           },
