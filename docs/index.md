@@ -18,10 +18,10 @@ users new to crypto in seconds.
 
 ## Closed beta
 
-Niomon is in closed beta. While we are ready for production, we want to focus our resources to
-support a targeted group of customers. Hence, sign-up is currently limited. As we are constantly
-improving our products, your comments and criticisms are very important to us. Please [reach out to
-us](/docs/support) at any time to provide your feedback.
+Niomon is in closed beta. While Niomon is ready for production deployment, we want to focus our
+resources on supporting a targeted group of customers. Hence, sign-up is currently limited. As we
+are constantly improving our products, your comments and criticisms are very important to us.
+Please [reach out to us](/docs/support) at any time to provide your feedback.
 
 [Sign up for closed beta](https://niomon.io/signup)
 
