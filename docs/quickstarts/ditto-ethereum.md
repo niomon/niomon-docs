@@ -2,19 +2,16 @@
 
 ## Step 1: Create a Niomon Developer Account
 
-:::caution
+import ClosedBeta from '@site/src/components/ClosedBeta';
 
-Niomon is currently in closed beta. If you don't have access, you can request it using our [beta
-sign up form](https://niomon.io/signup).
-
-:::
+<ClosedBeta />
 
 1. Sign in with your email address at https://admin.niomon.io.
 2. Register a new tenant.
 3. From the Ditto tab in Niomon Admin Console, create a new Application.
 4. Copy your Ditto Application's `appId`.
 
-## Step 2: Install Niomon JS SDK npm package
+## Step 2: Install Niomon JS SDK
 
 ### Using NPM
 ```
@@ -70,11 +67,11 @@ const signer = provider.getSigner();
 const address = await signer.getAddress();
 ```
 
-## Done!
+## Next Steps
 
-That's it. Your users can now sign in with Ditto using email addresses, and create crypto wallets
+🔥 Well done! Your users can now sign in with Ditto using email addresses, and create crypto wallets
 without dealing with seed phrases.
 
-See more:
+To learn more, check out:
 
-  * [Niomon SDK for Web API Reference](/docs/apis/niomon-js)
+📖 [Niomon SDK for Web API Reference](/docs/apis/niomon-js)
