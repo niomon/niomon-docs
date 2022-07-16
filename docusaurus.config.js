@@ -25,6 +25,7 @@ const config = {
           remarkPlugins: [require('mdx-mermaid')],
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: 'https://github.com/niomon/niomon-docs/blob/main/',
+          showLastUpdateTime: true,
         },
         blog: {
           showReadingTime: true,
