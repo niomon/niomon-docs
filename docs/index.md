@@ -55,7 +55,7 @@ Please [reach out to us](/docs/support) at any time to provide your feedback.
     <div class="card-demo">
       <div class="card padding--lg">
         <div class="card__header">
-          <h3>Auth</h3>
+          <h3>Wallet Kit</h3>
         </div>
         <div class="card__body">
           <p class="text--center">
