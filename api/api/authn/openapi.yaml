@@ -153,6 +153,49 @@ paths:
               schema:
                 $ref: '#/components/schemas/TransactionState'
       security: []
+  /authn/v1/otp/sms/send:
+    post:
+      summary: Send a one-time passcode to a user using their phone number.
+      tags:
+        - OTP
+      operationId: sendSmsPasscode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stateToken:
+                  type: string
+                  description: >-
+                    Ephemeral token that identifies the current state of an
+                    authentication or recovery transaction.
+                  x-oapi-codegen-extra-tags:
+                    validate: required
+                phoneNumber:
+                  type: string
+                  description: Phone number
+                  x-oapi-codegen-extra-tags:
+                    validate: required,e164
+                loginOrSignup:
+                  type: boolean
+                  default: false
+                  description: >-
+                    Create a user if the email is not associated with a user
+                    already. Returns an error if this is set to true and public
+                    sign-up is disabled in tenant settings.
+              required:
+                - stateToken
+                - phoneNumber
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionState'
+      security: []
   /authn/v1/otp/authenticate:
     post:
       summary: Authenticate one-time passcode

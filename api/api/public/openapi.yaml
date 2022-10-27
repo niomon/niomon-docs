@@ -73,16 +73,21 @@ tags:
     description: Manages credentials in a tenant.
   - name: One-time Passcodes
     description: Generates and authenticates one-time passcodes.
+  - name: Identity Providers
+    description: >-
+      Manages and authenticates with external identity providers like Google,
+      Facebook, Apple, and Microsoft.
   - name: Settings
     description: Manages settings of a tenant.
 x-tagGroups:
   - name: Management
     tags:
       - Users
-      - Clients
       - Sessions
       - Credentials
       - One-time Passcodes
+      - Identity Providers
+      - Clients
       - Settings
 paths:
   /v1/users:
@@ -133,9 +138,9 @@ paths:
                 $ref: '#/components/schemas/ListUsersResponse'
         default:
           $ref: '#/components/responses/GenericError'
-  /v1/users/{id}:
+  /v1/users/{userId}:
     parameters:
-      - name: id
+      - name: userId
         in: path
         description: ID of the User.
         required: true
@@ -192,9 +197,9 @@ paths:
           description: Success
         default:
           $ref: '#/components/responses/GenericError'
-  /v1/users/{user_id}/enrollments:
+  /v1/users/{userId}/enrollments:
     parameters:
-      - name: user_id
+      - name: userId
         in: path
         description: ID of the User to enroll a credential.
         required: true
@@ -239,9 +244,9 @@ paths:
                 $ref: '#/components/schemas/EnrollmentResponse'
         default:
           $ref: '#/components/responses/GenericError'
-  /v1/users/{user_id}/credentials:
+  /v1/users/{userId}/credentials:
     parameters:
-      - name: user_id
+      - name: userId
         in: path
         description: ID for the User.
         required: true
@@ -265,7 +270,7 @@ paths:
                 $ref: '#/components/schemas/ListCredentialsResponse'
         default:
           $ref: '#/components/responses/GenericError'
-  /v1/users/{user_id}/sessions:
+  /v1/users/{userId}/sessions:
     get:
       summary: List sessions
       description: Lists all active sessions of a user.
@@ -273,7 +278,7 @@ paths:
         - Sessions
       operationId: listUserSessions
       parameters:
-        - name: user_id
+        - name: userId
           in: path
           description: The user ID to get active sessions for.
           required: true
@@ -290,9 +295,208 @@ paths:
                 $ref: '#/components/schemas/ListSessionsResponse'
         default:
           $ref: '#/components/responses/GenericError'
-  /v1/sessions/{id}:
+  /v1/users/{userId}/idps:
+    get:
+      summary: List Identity Provider Users
+      description: Lists all Idp associated with a User.
+      tags:
+        - Identity Providers
+      operationId: listIdpUsers
+      parameters:
+        - name: userId
+          in: path
+          description: The user ID to get IdP User for.
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListIdpUsersResponse'
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/users/{userId}/idps/{idpId}:
     parameters:
-      - name: id
+      - name: userId
+        in: path
+        description: The user ID to get IdP User for.
+        required: true
+        schema:
+          type: string
+      - name: idpId
+        in: path
+        description: The IdP ID to get IdP User for.
+        required: true
+        schema:
+          type: string
+    post:
+      summary: Create Identity Provider User
+      description: Adds an new Identity Provider User.
+      tags:
+        - Identity Providers
+      operationId: createIdpUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdpUser'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdpUser'
+        default:
+          $ref: '#/components/responses/GenericError'
+    get:
+      summary: Get Identity Provider User
+      description: Get an Identity Provider User.
+      tags:
+        - Identity Providers
+      operationId: getIdpUser
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdpUser'
+        default:
+          $ref: '#/components/responses/GenericError'
+    put:
+      summary: Update Identity Provider User
+      description: Link a User from Identity Provider.
+      tags:
+        - Identity Providers
+      operationId: updateIdpUser
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdpUser'
+        default:
+          $ref: '#/components/responses/GenericError'
+    delete:
+      summary: Delete Identity Provider User
+      description: Unlink an Identity Provider User.
+      tags:
+        - Identity Providers
+      operationId: deleteIdpUser
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/users-by-email/{email}:
+    get:
+      summary: Get user by email
+      description: Gets user attributes by email address.
+      operationId: getUserByEmail
+      tags:
+        - Users
+      parameters:
+        - name: email
+          in: path
+          description: Email of the User.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/users-by-phone-number/{phoneNumber}:
+    get:
+      summary: Get user by phone number
+      description: Gets user attributes by phone number.
+      operationId: getUserByPhoneNumber
+      tags:
+        - Users
+      parameters:
+        - name: phoneNumber
+          in: path
+          description: Phone number of the User.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/sessions/authenticate:
+    post:
+      summary: Authenticate session
+      description: Authenticate a session token.
+      tags:
+        - Sessions
+      operationId: authenticateSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sessionToken:
+                  type: string
+                  x-oapi-codegen-extra-tags:
+                    validate: required
+                clientId:
+                  type: string
+                  description: >-
+                    ID of the client that created the session. It is required
+                    when authenticated with a OIDC-initiated session.
+                sessionExpirationMinutes:
+                  type: integer
+                  minimum: 0
+                  maximum: 129600
+                  description: >-
+                    Set the session expiry to the number of minutes from now.
+                    The value must be a minimum of 0 and a maximum of 129600 (90
+                    days). Session will not be refreshed if this value is
+                    omitted or 0. This value is ignored if the session is not
+                    refreshable.
+                rotateSessionToken:
+                  type: boolean
+                  description: >-
+                    Whether to rotate the token. If it is set to true, a new
+                    session token is returned in the response. Otherwise, no
+                    sessionToken will be returned in the resopnse.
+                metadata:
+                  $ref: '#/components/schemas/Metadata'
+              required:
+                - sessionToken
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticateResponse'
+      security:
+        - apiKey: []
+  /v1/sessions/{sessionId}:
+    parameters:
+      - name: sessionId
         in: path
         description: ID of the Session.
         required: true
@@ -322,6 +526,442 @@ paths:
       responses:
         '204':
           description: Success
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/credentials/{credentialId}:
+    parameters:
+      - name: credentialId
+        in: path
+        description: ID of the Credential.
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get credential
+      description: Gets credential attributes by ID.
+      operationId: getCredential
+      tags:
+        - Credentials
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Credential'
+        default:
+          $ref: '#/components/responses/GenericError'
+    delete:
+      summary: Delete credential
+      description: Revoke a previously enrolled Credential.
+      operationId: deleteCredential
+      tags:
+        - Credentials
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/otps/email/send:
+    post:
+      summary: Send Email passcode
+      description: Send an Email one-time passcode.
+      tags:
+        - One-time Passcodes
+      operationId: sendEmailPasscode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                to:
+                  type: string
+                  description: >-
+                    The email address of the user to send the one-time passcode
+                    to.
+                  x-oapi-codegen-extra-tags:
+                    validate: required,email
+                createUser:
+                  type: boolean
+                  description: >-
+                    Whether or not to create a new user when a matching user
+                    cannot be found.
+                metadata:
+                  $ref: '#/components/schemas/Metadata'
+              required:
+                - to
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendPasscodeResponse'
+        '400':
+          description: Email address is invalid or user is locked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: A user associated with the email address cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many requests have been made.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/otps/sms/send:
+    post:
+      summary: Send SMS passcode
+      description: Send a SMS one-time passcode.
+      tags:
+        - One-time Passcodes
+      operationId: sendSmsPasscode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                to:
+                  type: string
+                  description: >-
+                    The phone number of the user to send the one-time passcode
+                    to.
+                  x-oapi-codegen-extra-tags:
+                    validate: required,e164
+                createUser:
+                  type: boolean
+                  description: >-
+                    Whether or not to create a new user when a matching user
+                    cannot be found.
+                metadata:
+                  $ref: '#/components/schemas/Metadata'
+              required:
+                - to
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendPasscodeResponse'
+        '400':
+          description: Phone number is invalid or user is locked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: A user associated with the phone number cannot be found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many requests have been made.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/otps/authenticate:
+    post:
+      summary: Authenticate passcode
+      description: Authenticate an email or SMS passcode.
+      tags:
+        - One-time Passcodes
+      operationId: authenticatePasscode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                to:
+                  type: string
+                  description: Email or phone number to authenticate.
+                  x-oapi-codegen-extra-tags:
+                    validate: required
+                code:
+                  type: string
+                  description: The code to authenticate.
+                  x-oapi-codegen-extra-tags:
+                    validate: required,number
+                sessionExpirationMinutes:
+                  type: integer
+                  minimum: 0
+                  maximum: 129600
+                  description: >-
+                    Set the session expiry to the number of minutes from now.
+                    The value must be a minimum of 0 and a maximum of 129600 (90
+                    days). Session will not be created if this value is omitted
+                    or 0.
+                metadata:
+                  $ref: '#/components/schemas/Metadata'
+              required:
+                - to
+                - code
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticateResponse'
+        '400':
+          description: The passcode is incorrect or input format is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: >-
+            The passcode could not be authenticated because it was either used
+            or expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many requests have been made.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/idps:
+    post:
+      summary: Create identity provider
+      description: Adds a new identity provider to Niomon.
+      tags:
+        - Identity Providers
+      operationId: createIdp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIdpRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Idp'
+        default:
+          $ref: '#/components/responses/GenericError'
+    get:
+      summary: List identity providers
+      description: Lists identity providers in Niomon.
+      tags:
+        - Identity Providers
+      operationId: listIdps
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListIdpsResponse'
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/idps/{idpId}:
+    parameters:
+      - name: idpId
+        in: path
+        description: ID of the Identity Provider.
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get identity provider
+      description: Get an identity provider.
+      tags:
+        - Identity Provider
+      operationId: getIdp
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Idp'
+        default:
+          $ref: '#/components/responses/GenericError'
+    put:
+      summary: Update identity provider
+      description: Update an identity provider.
+      tags:
+        - Identity Provider
+      operationId: updateIdp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Idp'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Idp'
+        default:
+          $ref: '#/components/responses/GenericError'
+    delete:
+      summary: Delete identity provider
+      description: Delete an identity provider.
+      tags:
+        - Identity Provider
+      operationId: deleteIdp
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/idps/{idpId}/start:
+    post:
+      summary: Start identity provider authentication flow
+      description: Starts an identity provider authentication flow.
+      tags:
+        - Identity Provider
+      operationId: startAuthenticateIdp
+      parameters:
+        - name: idpId
+          in: path
+          description: ID of the Identity Provider.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                redirectUrl:
+                  type: string
+                state:
+                  type: string
+                metadata:
+                  $ref: '#/components/schemas/Metadata'
+              required:
+                - redirectUrl
+                - state
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StartAuthenticateIdpResponse'
+        default:
+          $ref: '#/components/responses/GenericError'
+  /v1/idps/{idpId}/authenticate:
+    post:
+      summary: Authenticate an IdP authorization
+      description: Get an identity provider.
+      tags:
+        - Identity Provider
+      operationId: authenticateIdp
+      parameters:
+        - name: idpId
+          in: path
+          description: ID of the Identity Provider.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: The authorization code received from IdP.
+                  x-oapi-codegen-extra-tags:
+                    validate: required
+                redirectUrl:
+                  type: string
+                  description: >-
+                    The value of the redirect_uri parameter to pass to OAuth 2.0
+                    token endpoint. The
+
+                    value must be identical to value in the authorization
+                    request.
+                requestToken:
+                  type: string
+                  description: The requestToken returned from start authenticate call.
+                sessionExpirationMinutes:
+                  type: integer
+                  minimum: 0
+                  maximum: 129600
+                  description: >-
+                    Set the session expiry to the number of minutes from now.
+                    The value must be a minimum of 0 and a maximum of 129600 (90
+                    days). Session will not be created if this value is omitted
+                    or 0.
+                createUser:
+                  type: boolean
+                  description: >-
+                    Whether or not to create a new user when a matching user
+                    cannot be found after a
+
+                    successful IdP authentication. In this case, and if this
+                    flag is set to false, a
+
+                    404 response that includes an authenticiated IdP profile
+                    will be returned.
+                metadata:
+                  $ref: '#/components/schemas/Metadata'
+              required:
+                - code
+                - redirectUrl
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticateIdpResponse'
+        '400':
+          description: The given code could not be authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: >-
+            A user associated with the IdP cannot be found. This response
+            includes successful IdP
+
+            authentication results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthenticateIdpErrorResponse'
         default:
           $ref: '#/components/responses/GenericError'
   /v1/clients:
@@ -364,9 +1004,9 @@ paths:
                 $ref: '#/components/schemas/ListClientsResponse'
         default:
           $ref: '#/components/responses/GenericError'
-  /v1/clients/{id}:
+  /v1/clients/{clientId}:
     parameters:
-      - name: id
+      - name: clientId
         in: path
         description: ID of the Client.
         required: true
@@ -421,107 +1061,6 @@ paths:
           description: Success
         default:
           $ref: '#/components/responses/GenericError'
-  /v1/credentials/{id}:
-    parameters:
-      - name: id
-        in: path
-        description: ID of the Credential.
-        required: true
-        schema:
-          type: string
-    get:
-      summary: Get credential
-      description: Gets credential attributes by ID.
-      operationId: getCredential
-      tags:
-        - Credentials
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Credential'
-        default:
-          $ref: '#/components/responses/GenericError'
-    delete:
-      summary: Delete credential
-      description: Revoke a previously enrolled Credential.
-      operationId: deleteCredential
-      tags:
-        - Credentials
-      responses:
-        '204':
-          description: Success
-        default:
-          $ref: '#/components/responses/GenericError'
-  /v1/otps/email/send:
-    post:
-      summary: Send Email passcode
-      description: Send an Email one-time passcode.
-      tags:
-        - One-time Passcodes
-      operationId: sendEmailPasscode
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  description: >-
-                    The email address of the user to send the one-time passcode
-                    to.
-                  x-oapi-codegen-extra-tags:
-                    validate: required,email
-              required:
-                - email
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SendPasscodeResponse'
-      security:
-        - apiKey: []
-  /v1/otps/authenticate:
-    post:
-      summary: Authenticate passcode
-      description: Authenticate an email or SMS passcode.
-      tags:
-        - One-time Passcodes
-      operationId: authenticatePasscode
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                stateToken:
-                  type: string
-                  x-oapi-codegen-extra-tags:
-                    validate: required
-                code:
-                  type: string
-                  description: The code to authenticate.
-                  x-oapi-codegen-extra-tags:
-                    validate: required,number
-              required:
-                - stateToken
-                - code
-      responses:
-        '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthenticatePasscodeResponse'
-      security:
-        - apiKey: []
   /v1/settings:
     get:
       summary: Get settings
@@ -565,8 +1104,7 @@ components:
       flows:
         implicit:
           authorizationUrl: /oidc/authorize
-          scopes:
-            niomon.admin_console: Access admin console
+          scopes: {}
       description: >-
         Applications that allow users to directly interact with Niomon Admin API
         resources, such as
@@ -861,6 +1399,14 @@ components:
 
             MUST be in E.164 format and any extensions MUST be represented in
             RFC 3966 format.
+        lockedAt:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Time the End-User was locked.
+        locked:
+          type: boolean
+          description: Whether the End-User was locked. A locked user cannot login.
         address:
           description: End-User's preferred postal address.
           $ref: '#/components/schemas/Address'
@@ -1039,12 +1585,300 @@ components:
                 $ref: '#/components/schemas/Session'
           required:
             - sessions
+    IdpUser:
+      type: object
+      properties:
+        idpId:
+          type: string
+          description: IdP ID
+          readOnly: true
+        userId:
+          type: string
+          description: User ID
+          readOnly: true
+        externalId:
+          type: string
+          description: IdP-specific identifier for a User
+          x-oapi-codegen-extra-tags:
+            validate: required
+        metadata:
+          type: object
+        lastLoginAt:
+          type: string
+          format: date-time
+          description: Time the user logged in with the IdP User.
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time the IdP User's information was last updated.
+          readOnly: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Time the IdP User's was first created.
+          readOnly: true
+      required:
+        - idpId
+        - userId
+        - externalId
+        - lastLoginAt
+        - updatedAt
+        - createdAt
+    ListIdpUsersResponse:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            idpUsers:
+              type: array
+              items:
+                $ref: '#/components/schemas/IdpUser'
+          required:
+            - idpUsers
+    Metadata:
+      type: object
+      description: Request metadata that help with fraud detection.
+      properties:
+        deviceToken:
+          type: string
+          description: >-
+            A globally unique ID identifying the user's client device or user
+            agent
+        userAgent:
+          type: string
+          description: The user agent string of the user's client device or user agent.
+        ipAddress:
+          type: string
+          description: The IP address of the user.
+    AuthenticateResponse:
+      type: object
+      properties:
+        session:
+          $ref: '#/components/schemas/Session'
+        sessionToken:
+          type: string
+          description: A secret token to authenticate and refresh session.
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+        - user
+    SendPasscodeResponse:
+      type: object
+      properties:
+        to:
+          type: string
+        userId:
+          type: string
+        userCreated:
+          type: boolean
+          description: Whether or not a user was newly created
+      required:
+        - to
+        - userId
+        - userCreated
+    Idp:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Id for the Identity Provider
+          readOnly: true
+        type:
+          type: string
+          enum:
+            - apple
+            - facebook
+            - google
+            - microsoft
+            - oauth2
+            - oidc
+            - twitter
+          description: Type of the identity provider
+          readOnly: true
+        name:
+          type: string
+          description: Name for the identity provider
+          x-oapi-codegen-extra-tags:
+            validate: required
+        clientId:
+          type: string
+          description: OAuth 2.0 Client ID
+        clientSecret:
+          type: string
+          description: OAuth 2.0 Client Secret
+        scopes:
+          type: string
+          description: OAuth 2.0/OIDC Scopes
+        issuer:
+          type: string
+          description: OIDC Issuer
+        authorizationEndpoint:
+          type: string
+          description: OAuth 2.0/OIDC Authorization Endpoint
+        tokenEndpoint:
+          type: string
+          description: OAuth 2.0/OIDC Token Endpoint
+        userInfoEndpoint:
+          type: string
+          description: OIDC User Info Endpoint
+        jwksUri:
+          type: string
+          description: OIDC JWKS URI
+        idTokenSigningAlg:
+          type: string
+          description: ID Token signing algorithm
+        idTokenSigningKey:
+          type: string
+          description: ID Token signing key in PEM X.509 format
+        appleTeamId:
+          type: string
+          description: (Apple IdP) The Team ID associated with your Apple developer account
+        appleKid:
+          type: string
+          description: (Apple IdP) The Key ID that you obtained from Apple
+        updatedAt:
+          type: string
+          format: date-time
+          description: Time the IdP User's information was last updated.
+          readOnly: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Time the IdP User's was first created.
+          readOnly: true
+      required:
+        - type
+        - name
+    ListIdpsResponse:
+      allOf:
+        - $ref: '#/components/schemas/PageMeta'
+        - type: object
+          properties:
+            idps:
+              type: array
+              items:
+                $ref: '#/components/schemas/Idp'
+          required:
+            - idps
+    CreateIdpRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          description: A unique ID for the identity provider
+          x-oapi-codegen-extra-tags:
+            validate: required,lowercase,max=20
+        type:
+          type: string
+          enum:
+            - apple
+            - facebook
+            - google
+            - microsoft
+            - oauth2
+            - oidc
+            - twitter
+          description: Type of the identity provider
+          x-oapi-codegen-extra-tags:
+            validate: required
+        name:
+          type: string
+          description: Name for the identity provider
+          x-oapi-codegen-extra-tags:
+            validate: required
+        clientId:
+          type: string
+          description: OAuth 2.0 Client ID
+        clientSecret:
+          type: string
+          description: OAuth 2.0 Client Secret
+        scopes:
+          type: string
+          description: OAuth 2.0/OIDC Scopes
+        issuer:
+          type: string
+          description: OIDC Issuer
+        authorizationEndpoint:
+          type: string
+          description: OAuth 2.0/OIDC Authorization Endpoint
+        tokenEndpoint:
+          type: string
+          description: OAuth 2.0/OIDC Token Endpoint
+        userInfoEndpoint:
+          type: string
+          description: OIDC User Info Endpoint
+        jwksUri:
+          type: string
+          description: OIDC JWKS URI
+        idTokenSigningAlg:
+          type: string
+          description: ID Token signing algorithm
+        idTokenSigningKey:
+          type: string
+          description: ID Token signing key in PEM X.509 format
+        appleTeamId:
+          type: string
+          description: (Apple IdP) The Team ID associated with your Apple developer account
+        appleKid:
+          type: string
+          description: (Apple IdP) The Key ID that you obtained from Apple
+      required:
+        - id
+        - type
+        - name
+    StartAuthenticateIdpResponse:
+      type: object
+      properties:
+        authorizationUrl:
+          type: string
+        requestToken:
+          type: string
+      required:
+        - authorizationUrl
+    IdpResults:
+      type: object
+      properties:
+        idp:
+          type: object
+          properties:
+            externalId:
+              type: string
+            tokens:
+              type: object
+              description: Token response from the identity provider
+            userInfo:
+              type: object
+              description: User profile from the identity provider
+          required:
+            - externalId
+            - tokens
+            - userInfo
+      required:
+        - idp
+    AuthenticateIdpResponse:
+      allOf:
+        - $ref: '#/components/schemas/AuthenticateResponse'
+        - $ref: '#/components/schemas/IdpResults'
+        - type: object
+          properties:
+            userCreated:
+              type: boolean
+              description: Whether or not a user was newly created
+          required:
+            - userCreated
+    AuthenticateIdpErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - $ref: '#/components/schemas/IdpResults'
     ClientData:
       type: object
       properties:
         name:
           type: string
           description: The name of the client.
+          x-oapi-codegen-extra-tags:
+            validate: omitempty,min=1
         description:
           type: string
           x-oapi-codegen-extra-tags:
@@ -1152,6 +1986,7 @@ components:
             - tenantId
             - updatedAt
             - createdAt
+      x-go-name: ClientEntity
     ListClientsResponse:
       allOf:
         - $ref: '#/components/schemas/PageMeta'
@@ -1196,23 +2031,6 @@ components:
             - name
             - type
             - appType
-    SendPasscodeResponse:
-      type: object
-      properties:
-        stateToken:
-          type: string
-        userId:
-          type: string
-      required:
-        - stateToken
-        - userId
-    AuthenticatePasscodeResponse:
-      type: object
-      properties:
-        userId:
-          type: string
-      required:
-        - userId
     Settings:
       type: object
       properties:
@@ -1246,5 +2064,4 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
 security:
   - apiKey: []
-  - oauth2:
-      - niomon.admin
+  - oauth2: []

@@ -1,0 +1,115 @@
+openapi: 3.0.3
+info:
+  title: Niomon Wallet API reference
+  description: Niomon Wallet API is used by Wallet Kit SDK to access user's cloud wallet.
+  version: '1.0'
+  license:
+    name: Apache License 2.0
+    url: https://spdx.org/licenses/Apache-2.0.html
+servers:
+  - url: https://{serverName}/{tenant}
+    variables:
+      serverName:
+        default: api.niomonid.com
+        description: Hostname of the API server.
+      tenant:
+        default: _
+        description: ID for the tenant.
+paths:
+  /wallet/v1/settings:
+    get:
+      summary: Get wallet settings
+      description: Gets current user's wallet settings.
+      operationId: getWalletSettings
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletSettings'
+        default:
+          $ref: '#/components/responses/GenericError'
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: /oidc/authorize
+          scopes: {}
+      description: >-
+        Applications that allow users to directly interact with Niomon Admin API
+        resources, such as
+
+        Admin Console, should use OAuth authentication.
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: An error message.
+        requestId:
+          type: string
+          description: An unique ID for the request.
+        fields:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              description:
+                type: string
+            required:
+              - field
+              - description
+      required:
+        - message
+        - requestId
+    WalletSettings:
+      type: object
+      properties:
+        addresses:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: object
+              properties:
+                address:
+                  type: string
+                path:
+                  type: string
+              required:
+                - address
+                - path
+        walletStub:
+          type: string
+        secretdInfo:
+          type: object
+          properties:
+            address:
+              type: string
+            clusterIdentity:
+              type: string
+            policyId:
+              type: string
+          required:
+            - address
+            - clusterIdentity
+            - policyId
+      required:
+        - addresses
+        - walletStub
+        - secretdInfo
+  responses:
+    GenericError:
+      description: An error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+security:
+  - oauth2: []
