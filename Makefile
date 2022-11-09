@@ -1,5 +1,8 @@
 .PHONY: all
-all: fetch-api-docs build
+all: \
+	fetch-api-docs \
+	fetch-walletkit-docs \
+	build
 
 .PHONY: build
 build:
