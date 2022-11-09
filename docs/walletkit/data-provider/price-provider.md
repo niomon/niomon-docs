@@ -1,4 +1,7 @@
-# Price provider
+---
+sidebar_position: 2
+---
+# Token Price
 
 ## Introduction
 
@@ -24,13 +27,13 @@ There are two APIs to fetch exchange rate of a token, one is for native token an
 
 To get exchange rate of a native token, you just need to specify the fiat currency you would like to return, for example if you need both USD and JPY price for Ethereum token
 
-```tsx
+```tsx title="Example 1: Getting token price of a native token"
 tokenProvider.getNativeTokenPrice(['usd', 'jpy']).then(console.log)
 ```
 
-This is the result returned: (#1)
+This is the result returned:
 
-```json
+```json title="Example Result 1: Getting token price of a native token"
 {
 	"type": "native",
 	"network": "ethereum",
@@ -43,15 +46,15 @@ This is the result returned: (#1)
 
 To get exchange rate of a contract token, you also need the address of the contract token you would like to return, for example if you need both USD and JPY price for USDT token
 
-```tsx
+```tsx title="Example 2: Getting token price of a contract token"
 // Contract address of USDT
 const usdtContractAddress = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
 tokenProvider.getContractTokenPrice([usdtContractAddress], ['usd', 'jpy']).then(console.log)
 ```
 
-This is the result returned: (#2)
+This is the result returned:
 
-```json
+```json title="Example Result 2: Getting token price of a contract token"
 [{
 	"type": "contract",
 	"contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
@@ -63,23 +66,26 @@ This is the result returned: (#2)
 }]
 ```
 
-`walletkit` also provides a unified API to get both types of tokens at once, all you need is to specific the type explicitly.
+WalletKit also provides a unified API to get both types of tokens at once, all you need is to specific the type explicitly.
 
-```tsx
+```tsx title="Example 3: Getting token price of multiple tokens"
 // Denote to have both native token and USDT token
-const tokens = [{
-	type: 'native' // This denotes to get native token
-}, {
-	type: 'contract', // This denotes to get contract token
-	contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7'
-}]
+const tokens = [
+	{
+		type: 'native' // This denotes to get native token
+	},
+	{
+		type: 'contract', // This denotes to get contract token
+		contractAddress: '0xdAC17F958D2ee523a2206206994597C13D831ec7'
+	}
+]
 
 tokenProvider.getTokenPrices(tokens, ['usd', 'jpy']).then(console.log)
 ```
 
 This is the result returned:
 
-```tsx
+```tsx title="Example Result 3: Getting token price of multiple tokens"
 [
 	{
 		"type": "native",
@@ -101,15 +107,15 @@ This is the result returned:
 ]
 ```
 
-## Show the fiat amount of the user’s balance
+## Show token balance in fiat currency
 
 One of the common scenario for getting the fiat amount of a token is to show the corresponding user’s balance. This section demonstrate how this can be done.
 
 To show the fiat amount, it requires user’s balance of the token to calculate the fiat amount, the information can be get from token provider, you can refer to “Fetch token balance of a user” in token provider section if necessary.
 
-The following gives an example from that: (#3)
+The following gives an example from that:
 
-```tsx
+```tsx title="Example: Token balance of a contract token"
 {
 	"balance": "0x0f4240",
 	"contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
@@ -120,9 +126,9 @@ The following gives an example from that: (#3)
 
 By merging the balance result with the price result from previous section, you now have enough information to calculate the fiat amount.
 
-`walletkit` provides extra formatter to format crypto-related information based on `@formatjs/intl` . You can refer to util section for more detail. For this part, it shows how to create the intl object and use the underlying formatter to return the fiat amount of the user’s balance.
+WalletKit provides extra formatter to format crypto-related information based on `@formatjs/intl` . You can refer to util section for more detail. For this part, it shows how to create the intl object and use the underlying formatter to return the fiat amount of the user’s balance.
 
-```tsx
+```tsx title="Example 4: Showing token balance in fiat currency"
 // The token object includes balance and price information
 // The price information
 const token = {
@@ -158,7 +164,7 @@ const valueWithSign = intl.formatTokenValue(token, {style: 'currency', currency:
 console.log(valueWithSign) // Returns "¥147.92" which is a JPY price
 ```
 
-## Summary
+## Complete example
 
 The following is the complete example of the above code blocks, this also includes using token provider to get token information.
 
@@ -218,5 +224,7 @@ async function main() {
 	console.log(valueWithSign) // Returns "¥147.92" which is a JPY price
 }
 ```
+
+## Summary
 
 This section gives you the idea of how to establish a new instance of price provider and provide examples on some common usage using underlying APIs and related formatter from util. For more information on what the endpoints can do to help building your application, check the API endpoints reference.

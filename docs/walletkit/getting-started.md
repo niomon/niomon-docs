@@ -1,4 +1,7 @@
-# Getting Started with WalletKit (NFT)
+---
+sidebar_position: 1
+---
+# Getting Started
 
 ## Summary
 

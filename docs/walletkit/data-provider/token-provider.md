@@ -1,12 +1,7 @@
-# Docs about fetching token data and balance
-
-- Fetching token data and balance
-    - how to fetch metadata of a token
-    - how to fetch token balance of a user
-    - how to display token balance in a numerical format (i.e. bignum hex to real number)
-    - example, for now, each section need at least one
-
-Fetching token data and balance example
+---
+sidebar_position: 1
+---
+# Token Metadata and Balance
 
 ## Introduction
 
@@ -41,21 +36,29 @@ const network = 'ethereum'
 const tokenProvider = adapterFactory.getTokenProvider(network)
 ```
 
-You can read Getting Started note on how to set up the adapter.
+You can read [Getting Started](../getting-started.md) on how to set up the adapter.
 
 ## Fetch metadata of a token
 
+The contract of a token provides some metadata about the token. This information
+includes token symbol and decimals. These information is required to present
+token information to the user, otherwise it will only be a contract address and
+a balance.
+
+In addition to contract-provided metadata, the data provider also provides
+a token icon for display.
+
 To get token metadata, you need to have the contract address of the token.
 
-```tsx
-// Contract address of USDT
+```tsx title="Example 1: Getting metadata of USDT"
+// Contract address of USDT on Ethereum mainnet
 const contractAddress = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
 tokenProvider.getTokenMetadata(contractAddress).then(console.log)
 ```
 
-This is the result of the above example (#1)
+This is the result of the above example:
 
-```json
+```json title="Example Result 1: Getting metadata of USDT"
 {
 	"contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
 	"decimals": 6,
@@ -69,7 +72,7 @@ This is the result of the above example (#1)
 
 Apart from ERC-20 token like USDT above, you can also get metadata of a NFT collection
 
-```tsx
+```tsx title="Example 2: Getting metadata of an NFT"
 // Contract address of Azuki
 const nftAddress = '0xED5AF388653567Af2F388E6224dC7C4b3241C544'
 tokenProvider.getTokenMetadata(nftAddress).then(console.log)
@@ -77,7 +80,7 @@ tokenProvider.getTokenMetadata(nftAddress).then(console.log)
 
 This is the result of the above example (#2)
 
-```json
+```json title="Example Result 2: Getting metadata of an NFT"
 {
 	"contractAddress": "0xED5AF388653567Af2F388E6224dC7C4b3241C544", 
 	"decimals": null,
@@ -89,11 +92,14 @@ This is the result of the above example (#2)
 }
 ```
 
-## Fetch token balance of a user
+## Fetch token balance owned by a wallet
 
-To get token balance of a user, you need to have a wallet address. For contract token like ERC-20, you also need to get its contract address. The following shows how to do that.
+You can get balance ownwed by a wallet for two types of tokens: a Native Token
+(like ETH) or a Contract Token (like USDT).
 
-```tsx
+To get token balance owned by a wallet, you need to have the wallet address. For contract token like ERC-20, you also need the contract address of the token. The following code shows how to do that:
+
+```tsx title="Example 3: Getting token balance owned by a wallet"
 // The address you would like to get balance
 const address = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'
 
@@ -105,19 +111,17 @@ const contractAddresses = ['0xdAC17F958D2ee523a2206206994597C13D831ec7']
 tokenProvider.getContractTokenBalances(address, contractAddresses).then(console.log)
 ```
 
-This is the case to get balance for native token (#3)
+This is the result to get balance for native token:
 
-```json
+```json title="Example Result 3: Getting token balance owned by a wallet"
+// Balance of a native token
 {
 	"balance": "0x0f4240",
 	"network": "ethereum",
 	"type": "native"
 }
-```
 
-This is the case to get balance for contract token (#4)
-
-```tsx
+// Balance of a contract token
 {
 	"balance": "0x0f4240",
 	"contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
@@ -126,23 +130,26 @@ This is the case to get balance for contract token (#4)
 }
 ```
 
-For convenience, `walletkit` provides using `getTokenBalances` function which can get multiple token balance at once, by then you don’t need to get them one-by-one.
+For convenience, WalletKit provides `getTokenBalances` function which can get multiple token balance at once, by then you don’t need to get them one-by-one.
 
-```tsx
+```tsx title="Example 4: Getting balance of mulitple tokens"
 // Provide the list of tokens you would like to get
-const tokens = [{
-	"type": "native"
-}, {
-	"contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-	"type": "contract"
-}]
+const tokens = [
+	{
+		"type": "native"
+	},
+	{
+		"contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+		"type": "contract"
+	}
+]
 
 tokenProvider.getTokenBalances('0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', tokens).then(console.log)
 ```
 
-This is the result using the above API (#5)
+This is the result using the above API:
 
-```json
+```json title="Example Result 4: Getting balance of mulitple tokens"
 [{
 	"balance": "0x0",
 	"network": "ethereum",
@@ -157,9 +164,20 @@ This is the result using the above API (#5)
 
 ## Display token balance in a numerical format
 
-The balance of the previous result is in hexdecimal format, which is not what common user expects, you can use `tokenBalanceValueUnsafe` util function to do conversion to return numerical format.
+The balance of the previous result is in hexdecimal format, which is not what user expects, you can use `tokenBalanceValueUnsafe` utility function to do conversion to return numerical format.
 
-```tsx
+
+:::caution
+
+The function is called `tokenBalanceValueUnsafe` because the value of a token
+cannot be displayed for very large or very small balance. In such situations the
+function returns an error. Make sure you check the error and fallback to
+a default string for display.
+
+:::
+
+
+```tsx title="Example 5: Showing numerical value of a token balance"
 import { 
 	tokenBalanceValueUnsafe,
 	TokenBalance,
@@ -183,9 +201,11 @@ console.log(value) // #6
 // This returns numerical amount "1", which means 1 USDT token
 ```
 
+## Complete example
+
 The following is the complete example of the above code blocks.
 
-```tsx
+```tsx title="Complete example for showing token metadata and value"
 import { DefaultAdapterFactory } from 'walletkit'
 
 // Set up the adapter for getting different features provider, check Getting Started for more details

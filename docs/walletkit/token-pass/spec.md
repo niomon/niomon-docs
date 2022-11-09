@@ -1,3 +1,6 @@
+---
+title: Specification
+---
 # Token Pass Specification
 
 ## Abstract
